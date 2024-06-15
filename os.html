@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Replacement Algorithms</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #333;
+            color: white;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 0 15px;
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        .home, .problems {
+            display: none;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .home {
+            background-image: url('https://get.wallhere.com/photo/blue-background-circuit-os-wallpapers-parrot-2229072.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .problems {
+            background-color: #f4f4f4;
+            background-image: url('https://get.wallhere.com/photo/blue-background-circuit-os-wallpapers-parrot-2229072.jpg');
+        }
+        .home-container, .container {
+            width: 60%;
+            padding: 6px;
+            background-color: rgba(225, 214, 214, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(127, 30, 30, 0.2);
+            text-align: center;
+        }
+        .home-container p {
+            margin: 20px 0;
+        }
+        .home-container .authors {
+            margin-top: 30px;
+            font-weight: bold;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        select, input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+        #output p {
+            margin-bottom: 5px;
+        }
+        .click-me {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .click-me:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">Page Replacement</div>
+        <div class="nav-links">
+            <a href="#" onclick="showPage('home')">Home</a>
+            <a href="#" onclick="showPage('problems')">Problems</a>
+        </div>
+    </div>
+
+    <div class="home" id="home">
+        <div class="home-container">
+            <h1>Page Replacement Algorithms</h1>
+            <p>
+                A page replacement algorithm is needed to decide which page needs to be replaced when a new page comes in.
+                Page replacement becomes necessary when a page fault occurs and there are no free page frames in memory.
+                However, another page fault would arise if the replaced page is referenced again. Hence it is important to
+                replace a page that is not likely to be referenced in the immediate future
+                If no page frame is free, the virtual memory manager performs a page replacement operation to replace one of the
+                pages existing in memory with the page whose reference caused the page fault. It is performed as follows: The
+                virtual memory manager uses a page replacement algorithm to select one of the pages currently in memory for
+                replacement, accesses the page table entry of the selected page to mark it as “not present” in memory, and initiates
+                a page-out operation for it if the modified bit of its page table entry indicates that it is a dirty page.
+            </p>
+            <p class="authors">
+               Developed by<br><br>
+                JASHWANTH VM (22CSR078)<br><br>
+                JAYAVIJAAY CJ (22CSR080)<br><br>
+                MAYILANANDHAN D (22CSR119)<BR><br>
+                KONGU ENGINEERING COLLEGE<br><br>
+                DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING
+                    
+            </p>
+            <button class="click-me" onclick="showPage('problems')">Click Me</button>
+        </div>
+    </div>
+
+    <div class="problems" id="problems">
+        <div class="container">
+            <h2>Page Replacement Algorithms</h2>
+            <label for="frames">Select number of frames:</label>
+            <select id="frames">
+                <option value="3">3 frames</option>
+                <option value="4">4 frames</option>
+            </select>
+            <br>
+            <label for="algorithm">Select algorithm:</label>
+            <select id="algorithm">
+                <option value="fifo">FIFO</option>
+                <option value="optimal">Optimal</option>
+                <option value="lru">LRU</option>
+            </select>
+            <br>
+            <label for="input">Enter page reference string (comma-separated):</label>
+            <input type="text" id="input">
+            <button onclick="runAlgorithm()">Run Algorithm</button>
+            <div id="output"></div>
+        </div>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            document.getElementById('home').style.display = 'none';
+            document.getElementById('problems').style.display = 'none';
+            document.getElementById(pageId).style.display = 'flex';
+        }
+
+        function runAlgorithm() {
+            var frames = parseInt(document.getElementById('frames').value);
+            var algorithm = document.getElementById('algorithm').value;
+            var inputString = document.getElementById('input').value;
+            var referenceString = inputString.split(',').map(Number);
+            var output = document.getElementById('output');
+
+            var pageFaults = 0;
+            var pageFrames = [];
+            var pageIndices = {};
+            var pageReplacement;
+
+            output.innerHTML = '';
+
+            for (var i = 0; i < referenceString.length; i++) {
+                var page = referenceString[i];
+                var currentFrameState = pageFrames.slice(); // Make a copy of current page frames
+
+                if (!pageIndices.hasOwnProperty(page)) {
+                    pageFaults++;
+                    if (pageFrames.length < frames) {
+                        pageFrames.push(page);
+                    } else {
+                        switch (algorithm) {
+                            case 'fifo':
+                                pageReplacement = pageFrames.shift();
+                                break;
+                            case 'optimal':
+                                pageReplacement = findOptimalPage(page, pageFrames, referenceString.slice(i + 1));
+                                break;
+                            case 'lru':
+                                pageReplacement = findLRUPage(page, pageIndices);
+                                break;
+                        }
+                        delete pageIndices[pageReplacement];
+                        pageFrames.push(page);
+                    }
+                }
+
+                pageIndices[page] = i;
+
+                // Limit the number of elements in pageFrames based on the selected number of frames
+                if (pageFrames.length > frames) {
+                    pageFrames.shift();
+                }
+
+                // Output the step-by-step calculation
+                output.innerHTML += '<p>Page: ' + page + ', Page Frames: [' + currentFrameState.join(', ') + '], Page Faults: ' + pageFaults + '</p>';
+            }
+
+            output.innerHTML += '<p>Total Page Faults: ' + pageFaults + '</p>';
+        }
+
+        function findOptimalPage(page, pageFrames, futureReferences) {
+            var index = -1;
+            var farthest = -1;
+            for (var i = 0; i < pageFrames.length; i++) {
+                var nextPageIndex = futureReferences.indexOf(pageFrames[i]);
+                if (nextPageIndex === -1) {
+                    index = i;
+                    break;
+                } else {
+                    if (nextPageIndex > farthest) {
+                        farthest = nextPageIndex;
+                        index = i;
+                    }
+                }
+            }
+            return pageFrames[index];
+        }
+
+        function findLRUPage(page, indices) {
+            var minIndex = Infinity;
+            var lruPage;
+            for (var key in indices) {
+                if (indices[key] < minIndex) {
+                    minIndex = indices[key];
+                    lruPage = key;
+                }
+            }
+            return lruPage;
+        }
+
+        // Show home page by default
+        showPage('home');
+    </script>
+</body>
+</html>
